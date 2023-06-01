@@ -1,0 +1,31 @@
+module Timer_PWM #(parameter bits = 4)(
+  input clk,                 // Clock signal
+  input reset_n,             // Active-low reset signal
+  input [bits-1:0] F_V,      // Final value for counting
+  input enb,                 // Enable signal for the timer
+  output done
+);
+
+  reg [bits-1:0] Q_next, Q_reg;
+
+  // Register assignment based on clock and reset
+  always @(posedge clk, negedge reset_n) begin
+    if (~reset_n) begin
+      Q_reg <= 'b0;         // Reset the counter to 0
+    end else if (enb) begin
+      Q_reg <= Q_next;      // Update the counter with the next value
+    end else begin
+      Q_reg <= Q_reg;       // Hold the current counter value
+    end
+  end
+
+  // Assign done signal based on comparison between Q_reg and F_V
+  // Raises the value of done to logic 1 for a single clock cycle when the final value is reached
+  assign done = (Q_reg == F_V);
+
+  // Logic to update Q_next based on the done signal and Q_reg
+  always @(Q_reg, done) begin
+    Q_next = done ? 'b0 : Q_reg + 1;
+  end
+
+endmodule
