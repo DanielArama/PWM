@@ -1,0 +1,54 @@
+module TB_PWM(
+
+    );
+
+    
+    localparam R=8;
+    localparam timer_bits =15;
+    
+    reg clk=1'b0;
+    reg reset_n;
+    reg [R:0] duty; //use  [0 - R^2]
+    wire [R-1:0] Q;
+    reg [timer_bits-1:0] FIVAL_VALUE;
+    wire pwm_out;
+ 
+    
+    PWM #( .R(R),.timer_bits(timer_bits)) UUT (
+        .clk(clk),
+        .reset_n(reset_n),       // Active-low reset signal
+        .duty(duty),          // Enable signal
+        .FIVAL_VALUE(FIVAL_VALUE),
+        .pwm_out(pwm_out),
+        .Q(Q)
+    );
+    
+    
+    always begin
+    #5; clk=~clk;
+    end
+    
+  
+     
+        
+    initial begin 
+    reset_n =1'b0;
+    FIVAL_VALUE=15'd194;
+    #1;
+    reset_n =1'b1;
+    
+
+    duty = 256/2;
+    # (2**R*5*1000);
+    
+    duty = 256/3;
+    # (2**R*5*1000);
+    
+    duty = 256/4;
+    # (2**R*5*1000);
+    
+    $stop;
+    
+    
+    end    
+endmodule
