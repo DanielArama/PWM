@@ -1,0 +1,45 @@
+module PWM #(
+  parameter R = 8,            // Number of bits for duty cycle
+  parameter timer_bits = 15   // Number of bits for timer
+)(
+  input clk,                           // Clock signal
+  input reset_n,                       // Active-low reset signal
+  input [R:0] duty,                    // Duty cycle input
+  input [timer_bits-1:0] FIVAL_VALUE,  // Final value for counting
+  output pwm_out                       // PWM output
+);
+    
+  reg [R-1:0] Q_next, Q_reg;  // Registers for Q output
+  reg D_reg, D_next;          // Registers for D output
+  wire enb;                   // Enable signal wire
+  
+  always @(posedge clk, negedge reset_n) begin
+    if (~reset_n) begin
+      Q_reg <= 'b0;           // Reset Q register to 0
+      D_reg <= 1'b0;          // Reset D register to 0
+    end else if (enb) begin
+      Q_reg <= Q_next;        // Update Q register with the next value
+      D_reg <= D_next;        // Update D register with the next value
+    end else begin
+      Q_reg <= Q_reg;         // Hold the current value of Q register
+      D_reg <= D_reg;         // Hold the current value of D register
+    end
+  end
+   
+  always @(Q_reg) begin
+    Q_next = Q_reg + 1;       // Increment Q_next by 1
+    D_next = (Q_reg < duty);  // Set D_next based on Q_reg and duty cycle
+  end
+    
+  Timer_PWM #(.bits(timer_bits)) UUT (
+    .clk(clk),                        // Connect clock input
+    .reset_n(reset_n),                // Connect reset_n input
+    .enb(1'b1),                       // Constant enable signal
+    .F_V(FIVAL_VALUE),                // Connect final value for counting
+    .done(enb)                        // Connect done signal
+  );
+  
+  // Additional D slider used to prevent glitches at the output of the PWM 
+  assign pwm_out = D_reg;            // Assign D_reg to pwm_out
+  
+endmodule
