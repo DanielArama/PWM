@@ -1,0 +1,36 @@
+module rgb_driver #(parameter R=8)(
+    input clk,  // Clock signal
+    input reset_n,  // Active-low reset signal
+    input [R:0] red_duty, green_duty, blue_duty, // Duty cycle inputs for red, green, blue channels
+    output red_LED, green_LED ,blue_LED // PWM outputs for red, green, blue LEDs
+    );
+    
+    localparam timer_bits =8;
+    localparam F_V =194;
+    
+    PWM #(.R(R),.timer_bits(timer_bits))UUT_R (
+     .clk(clk),          
+     .reset_n(reset_n),  
+     .duty(red_duty),        
+     .FIVAL_VALUE(F_V),  
+     .pwm_out(red_LED)   
+    );
+    
+    PWM #(.R(R),.timer_bits(timer_bits))UUT_G (
+     .clk(clk),          
+     .reset_n(reset_n),  
+     .duty(green_duty),        
+     .FIVAL_VALUE(F_V),  
+     .pwm_out(green_LED)   
+    );
+    
+    PWM #(.R(R),.timer_bits(timer_bits))UUT_B (
+     .clk(clk),          
+     .reset_n(reset_n),  
+     .duty(blue_duty),        
+     .FIVAL_VALUE(F_V),  
+     .pwm_out(blue_LED)   
+    );
+    
+    
+endmodule
