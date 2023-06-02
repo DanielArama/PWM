@@ -1,0 +1,59 @@
+module rgb_led_application #(
+  parameter R = 8
+)(
+  input clk,                                    // Clock signal
+  input reset_n,                                // Active-low reset signal
+  input change_color,                           // Signal to change color intensity
+  input [R:0] color_intensity,                  // Color intensity input
+  input [1:0] color_selector,                   // Color selector input
+  output red_led, blue_led, green_led           // Outputs for red, blue, green LEDs
+);
+
+  reg [R:0] R_reg, R_next, G_reg, G_next, B_reg, B_next;   // Registers for color intensity values
+
+  always @(posedge clk, negedge reset_n) begin
+    if (~reset_n) begin
+      R_reg <= 8'b0;                                 // Reset R_reg to 0
+      B_reg <= 8'b0;                                 // Reset B_reg to 0
+      G_reg <= 8'b0;                                 // Reset G_reg to 0
+    end else if (change_color) begin
+      R_reg <= R_next;                               // Update R_reg with the next value
+      B_reg <= B_next;                               // Update B_reg with the next value
+      G_reg <= G_next;                               // Update G_reg with the next value
+    end else begin
+      R_reg <= R_reg;                                // Hold the current value of R_reg
+      B_reg <= B_reg;                                // Hold the current value of B_reg
+      G_reg <= G_reg;                                // Hold the current value of G_reg
+    end
+  end
+
+  always @(*) begin
+    R_next = R_reg;
+    B_next = B_reg;
+    G_next = G_reg;
+
+    case (color_selector)
+       2'b00 : R_next = color_intensity;             // Set R_next to color_intensity when color_selector is 00
+       2'b01 : B_next = color_intensity;             // Set B_next to color_intensity when color_selector is 01
+       2'b10 : G_next = color_intensity;             // Set G_next to color_intensity when color_selector is 10
+       default: begin
+         R_next = R_reg;
+         B_next = B_reg;
+         G_next = G_reg;
+       end
+    endcase
+  end
+
+  // Instantiate rgb_driver module to drive the RGB LEDs
+  rgb_driver #(.R(R)) app (
+    .clk(clk),
+    .reset_n(reset_n),
+    .red_duty(R_reg),
+    .green_duty(G_reg),
+    .blue_duty(B_reg),
+    .red_LED(red_led),
+    .green_LED(green_led),
+    .blue_LED(blue_led)
+  );
+
+endmodule
